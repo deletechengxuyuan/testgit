@@ -1,0 +1,82 @@
+/*查看数据库默认字符集，如有返回，需要运行第一列的SQL进行修改*/
+SELECT
+    CONCAT(
+        "ALTER DATABASE ",
+        SCHEMA_NAME,
+        " CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;"
+    ),
+    SCHEMA_NAME,
+    DEFAULT_CHARACTER_SET_NAME,
+    DEFAULT_COLLATION_NAME
+FROM
+    information_schema.SCHEMATA
+WHERE
+    SCHEMA_NAME = 'hs12345' /*需要更改为项目库名*/
+AND DEFAULT_CHARACTER_SET_NAME != 'utf8mb4'
+
+
+/*查看某数据库下所有表的默认字符集，如有返回，需要运行第一列的SQL进行修改*/
+SELECT
+    CONCAT(
+        "ALTER TABLE `",
+        tb.TABLE_SCHEMA,
+        "`.`",
+        tb.TABLE_NAME,
+        "` CONVERT TO CHARACTER SET utf8mb4;"
+    )
+FROM
+    (
+        SELECT DISTINCT
+            TABLE_SCHEMA,TABLE_NAME
+        FROM
+            information_schema.`COLUMNS`
+        WHERE
+            TABLE_SCHEMA = 'hs12345'  /*需要更改为项目库名*/
+        AND CHARACTER_SET_NAME != 'utf8mb4' and TABLE_NAME  not like '%cswysk%'
+and TABLE_NAME 
+not in (select TABLE_NAME from information_schema.VIEWS where TABLE_SCHEMA = 'hs12345')  /*需要更改为项目库名*/
+    ) as tb;
+   
+   select * from information_schema.`COLUMNS` c where TABLE_SCHEMA = 'hs12345'  and TABLE_NAME  not like '%cswysk%'
+    
+/*查看某数据库下所有表列字段的字符集，如有返回，需要运行第一列的SQL进行修改*/
+select CONCAT_WS(' ','alter table ',table_name,' MODIFY COLUMN ',column_name,' ',column_type,
+                 ' CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci',case is_nullable when 'NO' then ' not null ' when 'YES' then ' null '  end,
+                 case when column_default  is null then ' '  when column_default is not null then concat('default ', '''',column_default,'''' ) end ,
+                 ' COMMENT ',  '''',column_comment, '''',';') sql_text ,table_name,column_name,character_set_name,collation_name,column_type
+from information_schema.columns
+where table_schema= 'hs12345' and character_set_name !='utf8mb4' and collation_name is not null and table_name ='cns_cinfo'
+
+
+select * from information_schema.VIEWS where table_schema = 'hs12345' and view_definition like '%convert%';
+
+
+-- 呼市有同步任務，暫無法執行
+ALTER TABLE `hs12345`.`cns_cinfo` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE hs12345.cns_cinfo MODIFY COLUMN HANDLEMANYOUGUIDLIST text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
+ALTER TABLE hs12345.cns_cinfo MODIFY COLUMN ANSWERCONTENT text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
+ALTER TABLE hs12345.cns_cinfo MODIFY COLUMN ABANDONTEXT text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL;
+ALTER TABLE hs12345.cns_cinfo MODIFY COLUMN RQSTCONTENT text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
+ALTER TABLE hs12345.cns_cinfo MODIFY COLUMN NOTES text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
+ALTER TABLE hs12345.cns_cinfo MODIFY COLUMN ANSWEROUGUID text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL;
+ALTER TABLE hs12345.cns_cinfo MODIFY COLUMN REPLAYCONTENT text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
+
+
+ALTER TABLE `hs12345`.`cns_tinfo` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE hs12345.cns_tinfo MODIFY COLUMN SENDOPINION text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
+ALTER TABLE hs12345.cns_tinfo MODIFY COLUMN FINISHRESULT text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
+
+ALTER TABLE `hs12345`.`cns_contractinfo` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE `hs12345`.`cns_crecord` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE `hs12345`.`cns_handle_step` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE `hs12345`.`cns_intelligent_log` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE `hs12345`.`messages_center` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE `hs12345`.`workflow_pvi` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE `hs12345`.`workflow_workitem` CONVERT TO CHARACTER SET utf8mb4;
+ALTER TABLE `hs12345`.`messages_center_histroy` CONVERT TO CHARACTER SET utf8mb4;
+-- ------ 执行超过40分钟
+
+
+
+
+
